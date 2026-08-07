@@ -1,0 +1,100 @@
+import React, { useState, useMemo } from "react";
+
+// 1. The ProductCard Component
+function ProductCard({ name, price, category, qty, onbuy }) {
+  return (
+    <div style={{ border: "1px solid #777", borderRadius: "8px", padding: "15px", width: "220px" }}>
+      <h3>{name}</h3>
+      <p><strong>Category:</strong> {category}</p>
+      <p><strong>Price:</strong> ₹{price}</p>
+      <p><strong>In Stock:</strong> {qty}</p>
+      <button onClick={() => onbuy(name)} style={{ marginTop: "10px", padding: "8px", cursor: "pointer", backgroundColor: "#007bff", color: "white", border: "none", borderRadius: "4px" }}>
+        Buy Now
+      </button>
+    </div>
+  );
+}
+
+// 2. The Main App Component
+export default function App() {
+  const [count, setcount] = useState(0);
+  const [dark, setdark] = useState(false);
+  const [search, setsearch] = useState("");
+
+  const [products] = useState([
+    { id: 1, name: "Laptop", price: 50000, category: "Electronics", qty: 5 },
+    { id: 2, name: "Mobile", price: 20000, category: "Electronics", qty: 10 },
+    { id: 3, name: "Shoes", price: 1500, category: "Fashion", qty: 25 },
+    { id: 4, name: "Book", price: 100, category: "Stationery", qty: 50 },
+    { id: 5, name: "Pen", price: 20, category: "Stationery", qty: 100 }
+  ]);
+
+  const total = useMemo(() => {
+    return products.reduce((sum, item) => sum + item.qty * item.price, 0);
+  }, [products]);
+
+  const filtered = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const handlebuy = (productname) => {
+    // Functional update ensures reliable incrementing even with alerts
+    setcount((prev) => prev + 1);
+    alert(`Order placed for: ${productname}`);
+  };
+
+  return (
+    <div style={{ backgroundColor: dark ? "#222" : "#fff", color: dark ? "#fff" : "#000", minHeight: "100vh", padding: "30px", fontFamily: "Arial, sans-serif" }}>
+      
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1>Store & Inventory</h1>
+        <button onClick={() => setdark(!dark)} style={{ padding: "8px 12px", cursor: "pointer" }}>
+          Toggle Theme
+        </button>
+      </div>
+      
+      <hr style={{ margin: "20px 0" }} />
+
+      <div style={{ margin: "20px 0", padding: "15px", border: "1px solid gray", borderRadius: "6px" }}>
+        <h2>1. Virtual DOM Counter</h2>
+        <p>Interactions: <strong>{count}</strong></p>
+        {/* The missing increment button is now here */}
+        <button onClick={() => setcount((prev) => prev + 1)} style={{ padding: "6px 12px", cursor: "pointer" }}>
+          Increment Counter
+        </button>
+      </div>
+
+      <div style={{ marginBottom: "25px" }}>
+        <h2>2. Search & Inventory Value</h2>
+        <input 
+          type="text" 
+          placeholder="Search products..." 
+          value={search} 
+          onChange={(e) => setsearch(e.target.value)}
+          style={{ padding: "10px", width: "300px", borderRadius: "4px", border: "1px solid #ccc" }}
+        />
+        <h3>Total Value: ₹{total}</h3>
+      </div>
+
+      <div>
+        <h2>3. Product Cards</h2>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "15px" }}>
+          {filtered.length > 0 ? (
+            filtered.map((product) => (
+              <ProductCard
+                key={product.id}
+                name={product.name}
+                price={product.price}
+                category={product.category}
+                qty={product.qty}
+                onbuy={handlebuy}
+              />
+            ))
+          ) : (
+            <p>No products found.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
