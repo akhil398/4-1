@@ -1,0 +1,100 @@
+package FirstMaven.WorkMaven;
+
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.imageio.ImageIO;
+
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class Fourb {
+    public static void main(String[] args) throws Exception {
+        WebDriver driver = new ChromeDriver();
+        try {
+            // Maximize the browser window
+            driver.manage().window().maximize();
+            driver.get("https://www.google.com");
+            
+            // Allow 7 seconds for the page to load completely on slower devices
+            Thread.sleep(7000);
+            
+            // Capture screenshot
+            File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);
+            BufferedImage fullimage = ImageIO.read(screenshot);
+            
+            /*
+             * PATH FORMAT NOTES FOR DIFFERENT OPERATING SYSTEMS:
+             * 
+             * macOS: /Users/YourUsername/eclipse-workspace/FirstMaven/SeleniumScreenshots/
+             * Linux: /home/yourusername/workspace/FirstMaven/SeleniumScreenshots/
+             * Windows: C:\\Users\\YourUsername\\eclipse-workspace\\FirstMaven\\SeleniumScreenshots\\
+             * 
+             * Note: The code below uses a relative path ("SeleniumScreenshots"), which is 
+             * cross-platform. It will automatically create the folder directly inside 
+             * your current Maven project directory without needing OS-specific paths.
+             */
+            File folder = new File("SeleniumScreenshots");
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+            
+            // Capture screen area (crop top-left 800x600 pixels)
+            int width = Math.min(800, fullimage.getWidth());
+            int height = Math.min(600, fullimage.getHeight());
+            BufferedImage currentarea = fullimage.getSubimage(0, 0, width, height);
+            
+            File currentfile = new File("SeleniumScreenshots/current_google_area.png");
+            ImageIO.write(currentarea, "png", currentfile);
+            
+            System.out.println("Current screenshot saved:");
+            System.out.println(currentfile.getAbsolutePath());
+            
+            File baselinefile = new File("SeleniumScreenshots/baseline_google_area.png");
+            
+            if(!baselinefile.exists()) {
+                System.out.println("Baseline image not found.");
+                System.out.println("Rename current_google_area.png to baseline_google_area.png");
+            }
+            else {
+                BufferedImage baseline = ImageIO.read(baselinefile);
+                double similarity = compareimages(baseline, currentarea);
+                
+                System.out.println("Image Similarity: " + similarity + "%");
+                
+                // Check if similarity is 95% or more
+                if(similarity >= 95) {
+                    System.out.println("BITMAP CHECKPOINT: TEST PASS");
+                }
+                else {
+                    System.out.println("BITMAP CHECKPOINT: TEST FAIL");
+                }
+            }
+        }
+        finally {
+            driver.quit();
+        }
+    }
+
+    // Method to compare image pixels and calculate similarity percentage
+    public static double compareimages(BufferedImage img1, BufferedImage img2) {
+        if(img1.getWidth() != img2.getWidth() || img1.getHeight() != img2.getHeight()) {
+            return 0;
+        }
+        
+        long totalpixels = img1.getWidth() * img1.getHeight();
+        long samepixels = 0;
+        
+        for(int x = 0; x < img1.getWidth(); x++) {
+            for(int y = 0; y < img1.getHeight(); y++) {
+                if(img1.getRGB(x,y) == img2.getRGB(x,y)) {
+                    samepixels++;
+                }
+            }
+        }
+        
+        return ((double)samepixels / totalpixels) * 100;
+    }
+}
